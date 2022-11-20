@@ -1,10 +1,10 @@
 use core::fmt;
-use std::fmt::{ Display};
+use std::fmt::Display;
 use std::str;
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
-struct ChunkType {
+#[derive(Debug, PartialEq,Eq, Clone)]
+pub struct ChunkType {
     critical: u8,
     public: u8,
     reserved: u8,
@@ -71,14 +71,9 @@ impl FromStr for ChunkType {
 
 impl Display for ChunkType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = str::from_utf8(&[
-            self.critical,
-            self.public,
-            self.reserved,
-            self.safe_to_copy,
-        ])
-        .unwrap()
-        .to_string();
+        let s = str::from_utf8(&[self.critical, self.public, self.reserved, self.safe_to_copy])
+            .unwrap()
+            .to_string();
         write!(f, "{}", s)
     }
 }
