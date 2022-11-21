@@ -3,7 +3,9 @@ use std::fmt::Display;
 use std::str;
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq,Eq, Clone)]
+use crate::{Error, Result};
+
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ChunkType {
     critical: u8,
     public: u8,
@@ -12,7 +14,7 @@ pub struct ChunkType {
 }
 
 impl ChunkType {
-    fn bytes(&self) -> [u8; 4] {
+    pub fn bytes(&self) -> [u8; 4] {
         [self.critical, self.public, self.reserved, self.safe_to_copy]
     }
     fn is_valid(&self) -> bool {
@@ -33,12 +35,12 @@ impl ChunkType {
 }
 
 impl TryFrom<[u8; 4]> for ChunkType {
-    type Error = &'static str;
-    fn try_from(list: [u8; 4]) -> Result<Self, Self::Error> {
+    type Error = Error;
+    fn try_from(list: [u8; 4]) -> Result<Self> {
         for byte in list.iter() {
             if !(is_lowercase(byte) || is_uppercase(byte)) {
                 println!("{:?}", byte);
-                return Err("invalid chunk type");
+                return Err(From::from("invalid chunk type"));
             }
         }
         Ok(ChunkType {
@@ -51,13 +53,13 @@ impl TryFrom<[u8; 4]> for ChunkType {
 }
 
 impl FromStr for ChunkType {
-    type Err = &'static str;
+    type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self> {
         let bytes = s.as_bytes();
         for byte in bytes {
             if !(is_lowercase(byte) || is_uppercase(byte)) {
-                return Err("invalid chunk type");
+                return Err(From::from("invalid chunk type"));
             }
         }
         Ok(ChunkType {
