@@ -1,61 +1,112 @@
+use crate::chunk_type::ChunkType;
 use crate::{chunk::Chunk, chunk_type};
-use std::fmt;
 use crate::{Error, Result};
+use std::io::{BufRead, BufReader, ErrorKind, Read};
+use std::str::{self, FromStr};
+use std::{fmt, vec};
 
 #[derive(Debug)]
 pub struct Png {
-    file: Vec<u8>
+    chunks: Vec<Chunk>,
 }
 impl Png {
-    pub const STANDARD_HEADER: [u8;8] = [137,80,78,71,13,10,26,10];
+    pub const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
 
     pub fn from_chunks(chunks: Vec<Chunk>) -> Png {
-        unimplemented!();
+        Png { chunks: chunks }
     }
 
-    pub fn append_chunk(&mut self, chunk:Chunk)  {
-        unimplemented!();
+    pub fn append_chunk(&mut self, chunk: Chunk) {
+        self.chunks.push(chunk);
     }
 
     pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
-        unimplemented!();
+        let removed = self.chunks.remove(
+            self.chunks
+                .iter()
+                .position(|x| str::from_utf8(&(x.chunk_type().bytes())).unwrap() == chunk_type)
+                .unwrap(),
+        );
+        Ok(removed)
     }
 
-    pub fn header(&self) -> &[u8;8] {
-        unimplemented!();
+    pub fn header(&self) -> &[u8; 8] {
+        &Self::STANDARD_HEADER
     }
 
     pub fn chunks(&self) -> &[Chunk] {
-        unimplemented!();
+        &self.chunks
     }
 
     pub fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
-        unimplemented!();
+        if let Ok(chunk_type) = ChunkType::from_str(chunk_type) {
+            self.chunks.iter().find(|x| *x.chunk_type() == chunk_type)
+        } else {
+            None
+        }
     }
 
     pub fn as_bytes(&self) -> Vec<u8> {
-        unimplemented!();
+        let mut total: Vec<u8> = Self::STANDARD_HEADER.to_vec();
+        for chunk in self.chunks.iter() {
+            total.append(&mut chunk.as_bytes().clone());
+        }
+        total
     }
-
 }
 
 impl TryFrom<&[u8]> for Png {
-    
     type Error = Error;
 
     fn try_from(bytes: &[u8]) -> Result<Self> {
-        unimplemented!();
+        let mut header: [u8; 8] = Default::default();
+        let mut reader = BufReader::new(bytes);
+        if let Err(error) = reader.read_exact(&mut header) {
+            if error.kind() == ErrorKind::UnexpectedEof {
+                return Err(From::from("Error: Invalid Length."));
+            } else {
+                return Err(From::from(error));
+            }
+        }
+
+        if header != Png::STANDARD_HEADER {
+            return Err(From::from("Error: Invalid Header."));
+        }
+
+        let mut chunks: Vec<Chunk> = Vec::new();
+        let mut len: [u8; 4] = Default::default();
+
+        while let Ok(()) = reader.read_exact(&mut len) {
+            let size = 4 + u32::from_be_bytes(len) + 4;
+            let mut more_chunk_bytes = vec![0u8; size as usize];
+
+            reader.read_exact((&mut more_chunk_bytes))?;
+
+            let chunk_bytes: Vec<u8> = len
+                .into_iter()
+                .chain(more_chunk_bytes.into_iter())
+                .collect();
+
+            let chunk = Chunk::try_from(&chunk_bytes[..])?;
+            chunks.push(chunk);
+        }
+        Ok(Png::from_chunks(chunks))
     }
 }
 
 impl std::fmt::Display for Png {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        unimplemented!();
+        write!(
+            f,
+            "{}",
+            self.chunks
+                .iter()
+                .map(Chunk::to_string)
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
     }
 }
-
-
-
 
 #[cfg(test)]
 mod tests {
