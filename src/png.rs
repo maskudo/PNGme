@@ -13,7 +13,7 @@ impl Png {
     pub const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
 
     pub fn from_chunks(chunks: Vec<Chunk>) -> Png {
-        Png { chunks}
+        Png { chunks }
     }
 
     pub fn append_chunk(&mut self, chunk: Chunk) {

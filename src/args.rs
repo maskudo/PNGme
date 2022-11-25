@@ -1,7 +1,7 @@
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
-#[command(author = "MK", version = "0.1.0", about = "Png steganography", long_about = None)]
+#[command(author = "MK", version = "0.1.0", about = "PNG steganography", long_about = "Png steganography: Hide secret message inside a PNG image.")]
 pub struct Cli {
     #[clap(subcommand)]
     pub command: Commands,
@@ -12,7 +12,7 @@ pub enum Commands {
     /// Encode a Png with a message
     Encode(EncodeArgs),
 
-    /// Decode a message from Png
+    /// Recover a hudden message from a Png
     Decode(DecodeArgs),
 
     /// Remove a chunk from Png
