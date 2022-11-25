@@ -1,15 +1,14 @@
 use clap::{Args, Parser, Subcommand};
-use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(author = "MK", version = "0.1.0", about = "Png steganography", long_about = None)]
-pub struct PngMeArgs {
+pub struct Cli {
     #[clap(subcommand)]
-    pub sub_command: PngSubCommand,
+    pub command: Commands,
 }
 
 #[derive(Debug, Subcommand)]
-pub enum PngSubCommand {
+pub enum Commands {
     /// Encode a Png with a message
     Encode(EncodeArgs),
 
@@ -25,30 +24,30 @@ pub enum PngSubCommand {
 
 #[derive(Debug, Args)]
 pub struct EncodeArgs {
-    file_path: String,
+    pub file_path: String,
 
-    chunk_type: String,
+    pub chunk_type: String,
 
-    message: String,
+    pub message: String,
 
-    output_file: Option<String>,
+    pub output_file: Option<String>,
 }
 
 #[derive(Debug, Args)]
 pub struct DecodeArgs {
-    file_path: String,
+    pub file_path: String,
 
-    chunk_type: String,
+    pub chunk_type: String,
 }
 
 #[derive(Debug, Args)]
 pub struct RemoveArgs {
-    file_path: String,
+    pub file_path: String,
 
-    chunk_type: String,
+    pub chunk_type: String,
 }
 
 #[derive(Debug, Args)]
 pub struct PrintArgs {
-    file_path: String,
+    pub file_path: String,
 }

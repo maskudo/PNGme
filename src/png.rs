@@ -1,7 +1,7 @@
+use crate::chunk::Chunk;
 use crate::chunk_type::ChunkType;
-use crate::{chunk::Chunk, chunk_type};
 use crate::{Error, Result};
-use std::io::{BufRead, BufReader, ErrorKind, Read};
+use std::io::{BufReader, ErrorKind, Read};
 use std::str::{self, FromStr};
 use std::{fmt, vec};
 
@@ -13,7 +13,7 @@ impl Png {
     pub const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
 
     pub fn from_chunks(chunks: Vec<Chunk>) -> Png {
-        Png { chunks: chunks }
+        Png { chunks}
     }
 
     pub fn append_chunk(&mut self, chunk: Chunk) {
@@ -80,7 +80,7 @@ impl TryFrom<&[u8]> for Png {
             let size = 4 + u32::from_be_bytes(len) + 4;
             let mut more_chunk_bytes = vec![0u8; size as usize];
 
-            reader.read_exact((&mut more_chunk_bytes))?;
+            reader.read_exact(&mut more_chunk_bytes)?;
 
             let chunk_bytes: Vec<u8> = len
                 .into_iter()
@@ -114,7 +114,6 @@ mod tests {
     use crate::chunk::Chunk;
     use crate::chunk_type::ChunkType;
     use std::convert::TryFrom;
-    use std::str::FromStr;
 
     fn testing_chunks() -> Vec<Chunk> {
         let mut chunks = Vec::new();
@@ -132,8 +131,6 @@ mod tests {
     }
 
     fn chunk_from_strings(chunk_type: &str, data: &str) -> Result<Chunk> {
-        use std::str::FromStr;
-
         let chunk_type = ChunkType::from_str(chunk_type)?;
         let data: Vec<u8> = data.bytes().collect();
 
